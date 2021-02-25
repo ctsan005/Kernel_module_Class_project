@@ -54,6 +54,11 @@
  *      2a) Might add another one to point to the end of the process, make it easier for adding another thread to the existing container
  *  3) Need a pointer to point to the next container.
  *      3a) if current container is the only one, point back to itself
+ * 
+ * First container:
+ *  1) Need a pointer to the first container
+ *  2) Will be NULL in the beginning if no thread create container yet
+ *  3) After the first container is create, this variable will only change if the first container need to delete
  *  
  * For thread:
  *  1) Need thread id to know which thread it is. Should be able to extract from task_struct 
@@ -61,6 +66,90 @@
  *  3) The pointer to the next thread within the container
  *  4) Maybe add a task struct to keep track the thread? But shouldn't be able to read it from current?
 */
+
+typedef struct thread_block{
+    int cid;    //container id, use for debugging
+    thread_block* next_thread;      //pointer to the next thread block
+    struct task_struct* task_info;  //Use to load the info from current when create   
+} thread_block;
+
+typedef struct container_block{
+    int cid;                        //container id
+    thread_block* first_thread;     //point to the first thread for the container
+    thread_block* last_thread;      //point to the last thread for the container, [question] is it needed
+    container_block* next_container;    //point to the next container
+} container_block;
+
+container_block* first_container = NULL;        //Use to check the first container
+container_block* switch_target_container = NULL;    //Use to see which container to do the switch
+
+
+////////////////////////support function///////////////////////////////
+
+// search_container_create: use to search for does a container exist, use by create function
+// input: cid  -  the id for the container
+// output: NULL if the container does not esist, else the target's container address.
+container_block* search_container_create(int cid){
+    // no container
+    if(first_container == NULL){
+        return NULL;
+    }
+    container_block* temp = first_container;
+
+    //continue to iterate all the container
+    while(temp != NULL){
+        if(temp->cid == cid){
+            return temp;            //if the current search container match the cid, return the address of that container block
+        }
+        temp = temp->next_container;
+    }
+
+    return NULL;            //if iterate all the container but cannot find the target container, return NULL
+}
+
+// new_container_create: use to actually create the container and update the structure
+// input: cid
+// output: newly created container_block pointer
+container_block* new_container_create(int cid){
+    container_block* new_container = (container_block *)kmalloc(sizeof( container_block ) , GFP_KERNEL);    //allocate space for new container, use GFP_KERNEL because it should only be access by kernel 
+    //input basic information for the new container block
+    new_container->cid = cid;
+    new_container->first_thread = NULL;
+    new_container->next_container = NULL;
+    new_container->last_thread = NULL;
+    //if it is the first container created, update first_container and switch_target_container
+    if(first_container == NULL){
+        first_container = new_container;
+        switch_target_container = new_container;
+    }
+    return new_container;
+}
+
+// new_thread_create: create new thread structure and connect to the container block
+thread_block* new_thread_create(container_block* cblock){
+    thread_block* new_thread = (thread_block *)kmalloc(sizeof( thread_block ) , GFP_KERNEL);        //allocate space for thread_block
+    new_thread->task_info = current;
+    new_thread->cid = cblock->cid;
+    new_thread->next_thread = NULL;
+
+    thread_block* temp = cblock->first_thread;
+
+    // if first thread is NULL, need to update first thread and last thread to new thread that just created
+    if(temp == NULL){
+        cblock->first_thread = new_thread;
+        cblock->last_thread = new_thread;
+        
+    }
+    // else, it already has at least a thread in the thread list, update the original last thread to point to the new last thread, and update container last thread
+    else{
+        cblock->last_thread->next_thread = new_thread;
+        cblock->last_thread = new_thread;
+    }
+
+    return new_thread;
+}
+
+
 
 
 /**
@@ -99,6 +188,8 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     // Structure use to keep the information that is pass from the user
     struct resource_container_cmd cmd;
 
+
+
     // copy_from_user return 0 if it is success
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
@@ -107,6 +198,20 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     }
 
     // copy from write success, cmd contain the cid from the user
+    container_block* temp = search_container_create(cmd->cid);      //search does a container block exist already
+
+    if(temp == NULL){           //case when target container does not exist
+        temp = new_container_create(cmd->cid);
+    }
+
+    //Now temp has the pointer to the target continer, need to add the new thread to the container
+    new_thread_create(temp);
+
+
+    // Set the new thread to sleep if it is not the only thread within the container [question] is it needed?
+    set_current_state(TASK_INTERRUPTIBLE);
+    schedule();
+
     
     return 0;
 }
