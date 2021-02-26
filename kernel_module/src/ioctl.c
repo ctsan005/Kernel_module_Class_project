@@ -96,11 +96,12 @@ container_block* switch_target_container = NULL;    //Use to see which container
 // input: cid  -  the id for the container
 // output: NULL if the container does not esist, else the target's container address.
 container_block* search_container_create(int cid){
+    container_block* temp;
     // no container
     if(first_container == NULL){
         return NULL;
     }
-    container_block* temp;
+    
     temp = first_container;
 
     //continue to iterate all the container
@@ -144,6 +145,8 @@ container_block* new_container_create(int cid){
 
 // new_thread_create: create new thread structure and connect to the container block
 thread_block* new_thread_create(container_block* cblock){
+
+    thread_block* temp = cblock->first_thread;
     thread_block* new_thread = (thread_block *)kmalloc(sizeof( thread_block ) , GFP_KERNEL);        //allocate space for thread_block
     new_thread->task_info = current;
     new_thread->cid = cblock->cid;
@@ -151,7 +154,7 @@ thread_block* new_thread_create(container_block* cblock){
     new_thread->tid = current->pid;
     new_thread->prev_thread = NULL;
 
-    thread_block* temp = cblock->first_thread;
+    
 
     // if first thread is NULL, need to update first thread and last thread to new thread that just created
     // And this thread will be the running thread
@@ -217,9 +220,12 @@ container_block* search_all_container_tid(int tid){
 
 //
 int thread_remove(int tid, container_block* cblock){
+    container_block* prev = NULL;
+    container_block* next = NULL;
+    thread_block* temp = NULL;
     //case 1: only 1 thread within the cblock
     if(cblock->first_thread == cblock->last_thread){
-        thread_block* temp = cblock->first_thread;
+        temp = cblock->first_thread;
 
         if(temp->tid != tid){   //check is the tid match, if not, return -1
             printk(KERN_ERR "seomething wrong with thread remove\n");
@@ -227,8 +233,8 @@ int thread_remove(int tid, container_block* cblock){
         }
 
         //prepare to remove the container
-        container_block* prev = cblock->prev_container;
-        container_block* next = cblock->next_container;
+        prev = cblock->prev_container;
+        next = cblock->next_container;
 
         if(prev == NULL && next == NULL){       //if this is the only container
             first_container = NULL;
@@ -293,6 +299,8 @@ int thread_remove(int tid, container_block* cblock){
 int resource_container_delete(struct resource_container_cmd __user *user_cmd)
 {
     struct resource_container_cmd cmd;
+    int target_tid = 0;
+    container_block* temp_container = NULL;
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         printk(KERN_ERR "copy from user function fail from resource container delete\n");
@@ -300,14 +308,14 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
     }
 
     // Need to find the current thread information and remove it from the container
-    int target_tid = current->pid;       //find the current thread pid
+    target_tid = current->pid;       //find the current thread pid
 
     if(first_container == NULL){    //no container case
         printk(KERN_ERR "copy from user function fail from resource container create\n");
         return -1;
     }
 
-    container_block* temp_container = search_all_container_tid(target_tid);
+    temp_container = search_all_container_tid(target_tid);
 
     if(temp_container == NULL){
         printk(KERN_ERR "Not find thread in anywhere in the kernel\n");
@@ -343,7 +351,7 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
 {
     // Structure use to keep the information that is pass from the user
     struct resource_container_cmd cmd;
-
+    container_block* temp = NULL;
 
 
     // copy_from_user return 0 if it is success
@@ -354,7 +362,7 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     }
 
     // copy from write success, cmd contain the cid from the user
-    container_block* temp = search_container_create(cmd.cid);      //search does a container block exist already
+    temp = search_container_create(cmd.cid);      //search does a container block exist already
 
     if(temp == NULL){           //case when target container does not exist
         temp = new_container_create(cmd.cid);
