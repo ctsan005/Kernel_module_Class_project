@@ -134,7 +134,7 @@ container_block* new_container_create(int cid){
     }
     else{       //else, update the last container
         last_container->next_container = new_container;
-        new_container->prev_containe = last_container;
+        new_container->prev_container = last_container;
         last_container = new_container;
         
     }
@@ -200,7 +200,7 @@ container_block* search_all_container_tid(int tid){
 
     if(temp == NULL){       //should not happen
         printk(KERN_ERR "copy from user function fail from find tid\n");
-        return -1;
+        return NULL;
     }
 
     while(temp != NULL){
@@ -300,7 +300,7 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
     }
 
     // Need to find the current thread information and remove it from the container
-    int target_tid = current.pid;       //find the current thread pid
+    int target_tid = current->pid;       //find the current thread pid
 
     if(first_container == NULL){    //no container case
         printk(KERN_ERR "copy from user function fail from resource container create\n");
@@ -318,6 +318,8 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
         printk(KERN_ERR "error in removing thread\n");
         return -1;
     }
+
+    return 0;
 }
 
 /**
@@ -352,10 +354,10 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     }
 
     // copy from write success, cmd contain the cid from the user
-    container_block* temp = search_container_create(cmd->cid);      //search does a container block exist already
+    container_block* temp = search_container_create(cmd.cid);      //search does a container block exist already
 
     if(temp == NULL){           //case when target container does not exist
-        temp = new_container_create(cmd->cid);
+        temp = new_container_create(cmd.cid);
     }
 
     //Now temp has the pointer to the target continer, need to add the new thread to the container
