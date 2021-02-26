@@ -69,18 +69,23 @@
 
 typedef struct thread_block{
     int cid;    //container id, use for debugging
+    int tid;    //thread id, use to search the thread when delete is call
     thread_block* next_thread;      //pointer to the next thread block
+    thread_block* prev_thread;      //pointer to the prev thread block
     struct task_struct* task_info;  //Use to load the info from current when create   
 } thread_block;
 
 typedef struct container_block{
     int cid;                        //container id
-    thread_block* first_thread;     //point to the first thread for the container
+    thread_block* first_thread;     //point to the first thread for the container 
     thread_block* last_thread;      //point to the last thread for the container, [question] is it needed
+    thread_block* running_thread;   //point to the threade that is running, use for switching
     container_block* next_container;    //point to the next container
+    container_block* prev_container;    //point to the previous container
 } container_block;
 
 container_block* first_container = NULL;        //Use to check the first container
+container_block* last_container = NULL;         //use to check the last container
 container_block* switch_target_container = NULL;    //Use to see which container to do the switch
 
 
@@ -117,11 +122,21 @@ container_block* new_container_create(int cid){
     new_container->first_thread = NULL;
     new_container->next_container = NULL;
     new_container->last_thread = NULL;
+    new_container->running_thread = NULL;
+    new_container->prev_container = NULL
     //if it is the first container created, update first_container and switch_target_container
     if(first_container == NULL){
         first_container = new_container;
+        last_container = new_container;
         switch_target_container = new_container;
     }
+    else{       //else, update the last container
+        last_container->next_container = new_container;
+        new_container->prev_containe = last_container;
+        last_container = new_container;
+        
+    }
+    
     return new_container;
 }
 
@@ -131,39 +146,176 @@ thread_block* new_thread_create(container_block* cblock){
     new_thread->task_info = current;
     new_thread->cid = cblock->cid;
     new_thread->next_thread = NULL;
+    new_thread->tid = current.pid;
+    new_thread->prev_thread = NULL;
 
     thread_block* temp = cblock->first_thread;
 
     // if first thread is NULL, need to update first thread and last thread to new thread that just created
+    // And this thread will be the running thread
     if(temp == NULL){
         cblock->first_thread = new_thread;
         cblock->last_thread = new_thread;
-        
+        cblock->running_thread = new_thread;        
     }
     // else, it already has at least a thread in the thread list, update the original last thread to point to the new last thread, and update container last thread
+    // Also need to sleep the thread
     else{
         cblock->last_thread->next_thread = new_thread;
-        cblock->last_thread = new_thread;
+        new_thread->prev_thread = cblock->last_thread;
+        cblock->last_thread = new_thread;        
+        set_current_state(TASK_INTERRUPTIBLE);
+        schedule();
     }
 
     return new_thread;
 }
 
+// find_tid: search a container to see does it contain the thread with certain tid
+thread_block* find_tid(int tid, container_block* cblock){
+    thread_block* temp = cblock->first_thread;
+
+    if(temp == NULL){       //should not happen
+        printk(KERN_ERR "copy from user function fail from find tid\n");
+        return NULL;
+    }
+    while(temp != NULL){         //check all the thread block other than last thread block
+        if(temp->tid == tid){                   //if find, return true
+            return temp;
+        }
+        else{                                   //else, continue to search next thread block
+            temp = temp->next_thread;
+        }
+    }
+    return NULL;
+
+}
+
+//search_all_container_tid: search all the container to see if any contain a thread with target tid
+//return contain_block if find, else return NULL
+container_block* search_all_container_tid(int tid){
+    container_block* temp = first_container;
+
+    if(temp == NULL){       //should not happen
+        printk(KERN_ERR "copy from user function fail from find tid\n");
+        return -1;
+    }
+
+    while(temp != NULL){
+        if(find_tid(tid,temp) != NULL){
+            return temp;
+        }
+        else{
+            temp = temp->next_container;
+        }
+    }
+    return NULL;
+}
 
 
+//
+int thread_remove(int tid, container_block* cblock){
+    //case 1: only 1 thread within the cblock
+    if(cblock->first_thread == cblock->last_thread){
+        thread_block* temp = cblock->first_thread;
+
+        if(temp->tid != tid){   //check is the tid match, if not, return -1
+            printk(KERN_ERR "seomething wrong with thread remove\n");
+            return -1;
+        }
+
+        //prepare to remove the container
+        container_block* prev = cblock->prev_container;
+        container_block* next = cblock->next_container;
+
+        if(prev == NULL && next == NULL){       //if this is the only container
+            first_container = NULL;
+            last_container = NULL;
+            switch_target_container = NULL;
+        }
+        else if(prev == NULL){                  //if current container is the first one
+            first_container = next;
+            next->prev_container = NULL;
+        }
+        else if(next == NULL){                  //if current container is the last one
+            prev->next_container = NULL;
+            last_container = prev;
+        }
+        else{                                   //if it is a middle container
+            prev->next_container = next;
+            next->prev_container = prev;
+        }
+        
+        printk("removing thread\n");
+        kfree(temp);
+        printk("removing container\n");
+        kfree(cblock);
+        return 0;
+    }
+
+    //case 2: more than 1 thread within the cblock
+    else{
+        thread_block* temp = find_tid(tid,cblock);
+
+        thread_block* prev = temp->prev_thread;
+        thread_block* next = temp->next_thread;
+
+        if(prev == NULL && next == NULL){       // case when it is the only thread, should not happen
+            printk(KERN_ERR "wrong with case 2 in thread remove\n");
+            return -1;
+        }
+        else if(prev == NULL){                  //current thread is the first thread
+            cblock->first_thread = next;
+            next->prev_thread = NULL;
+        }
+        else if(next == NULL){                  //current thread is the last thread
+            cblock->last_thread = prev;
+            prev->next_thread = NULL;
+        }
+        else{                                   //middle case for thread
+            prev->next_thread = next;
+            next->prev_thread = prev;
+        }
+
+        printk("removing thread\n");
+        kfree(temp);
+        return 0;
+    }
+}
 
 /**
  * Deregister the task from the container.
+ * user_cmd does not contain useful information
+ * Need to use current to get the tid and search from it
  */
 int resource_container_delete(struct resource_container_cmd __user *user_cmd)
 {
     struct resource_container_cmd cmd;
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
+        printk(KERN_ERR "copy from user function fail from resource container delete\n");
         return -1;
     }
-    // not found, return -1
-    return -1;
+
+    // Need to find the current thread information and remove it from the container
+    int target_tid = current.pid;       //find the current thread pid
+
+    if(first_container == NULL){    //no container case
+        printk(KERN_ERR "copy from user function fail from resource container create\n");
+        return -1;
+    }
+
+    container_block* temp_container = search_all_container_tid(target_tid);
+
+    if(temp_container == NULL){
+        printk(KERN_ERR "Not find thread in anywhere in the kernel\n");
+        return -1;
+    }
+
+    if(thread_remove(target_tid,temp_container) == -1){
+        printk(KERN_ERR "error in removing thread\n");
+        return -1;
+    }
 }
 
 /**
@@ -207,10 +359,7 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     //Now temp has the pointer to the target continer, need to add the new thread to the container
     new_thread_create(temp);
 
-
-    // Set the new thread to sleep if it is not the only thread within the container [question] is it needed?
-    set_current_state(TASK_INTERRUPTIBLE);
-    schedule();
+    
 
     
     return 0;
