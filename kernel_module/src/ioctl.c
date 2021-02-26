@@ -66,7 +66,8 @@
  *  3) The pointer to the next thread within the container
  *  4) Maybe add a task struct to keep track the thread? But shouldn't be able to read it from current?
 */
-
+typedef struct thread_block thread_block;
+typedef struct container_block container_block;
 typedef struct thread_block{
     int cid;    //container id, use for debugging
     int tid;    //thread id, use to search the thread when delete is call
