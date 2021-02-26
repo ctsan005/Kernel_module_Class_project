@@ -100,7 +100,8 @@ container_block* search_container_create(int cid){
     if(first_container == NULL){
         return NULL;
     }
-    container_block* temp = first_container;
+    container_block* temp = NULL;
+    temp = first_container;
 
     //continue to iterate all the container
     while(temp != NULL){
@@ -124,7 +125,7 @@ container_block* new_container_create(int cid){
     new_container->next_container = NULL;
     new_container->last_thread = NULL;
     new_container->running_thread = NULL;
-    new_container->prev_container = NULL
+    new_container->prev_container = NULL;
     //if it is the first container created, update first_container and switch_target_container
     if(first_container == NULL){
         first_container = new_container;
@@ -147,7 +148,7 @@ thread_block* new_thread_create(container_block* cblock){
     new_thread->task_info = current;
     new_thread->cid = cblock->cid;
     new_thread->next_thread = NULL;
-    new_thread->tid = current.pid;
+    new_thread->tid = current->pid;
     new_thread->prev_thread = NULL;
 
     thread_block* temp = cblock->first_thread;
