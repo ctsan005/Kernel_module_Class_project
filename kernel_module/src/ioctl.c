@@ -100,7 +100,7 @@ container_block* search_container_create(int cid){
     if(first_container == NULL){
         return NULL;
     }
-    container_block* temp = NULL;
+    container_block* temp;
     temp = first_container;
 
     //continue to iterate all the container
