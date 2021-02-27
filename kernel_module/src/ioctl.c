@@ -350,35 +350,35 @@ void print_all_container_thread(void){
             printk("    first thread NULL");
         }
         else{
-            printk("    first thread exist");
+            printk("    first thread tid: %d", temp_container->first_thread->tid);
         }
         //check last thread
         if(temp_container->last_thread == NULL){
             printk("    last thread NULL");
         }
         else{
-            printk("    last thread exist");
+            printk("    last thread tid: %d", temp_container->last_thread->tid);
         }
         //check running thread
         if(temp_container->running_thread == NULL){
             printk("    running thread NULL");
         }
         else{
-            printk("    running thread exist");
+            printk("    running thread tid: %d", temp_container->running_thread->tid);
         }
         //check next container
         if(temp_container->next_container == NULL){
             printk("    next_container NULL");
         }
         else{
-            printk("    next_container exist");
+            printk("    next_container cid: %d", temp_container->next_container->cid);
         }
         //check prev container
         if(temp_container->prev_container == NULL){
             printk("    prev_container NULL");
         }
         else{
-            printk("    prev_container exist");
+            printk("    prev_container cid: %d", temp_container->prev_container->cid);
         }
         printk("\n");
 
@@ -502,8 +502,9 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     //Now temp has the pointer to the target continer, need to add the new thread to the container
     new_thread_create(temp);
     //debug statement
-    printk("    %d: resource_container_create return: sucess create\n", current->pid);    
+        
     print_all_container_thread();
+    printk("    %d: resource_container_create return: sucess create\n", current->pid);
     return 0;
 }
 
