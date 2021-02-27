@@ -239,7 +239,7 @@ container_block* search_all_container_tid(int tid){
     container_block* temp = first_container;
 
     //debug statement
-    printk("%d: search_all_container_tid begin\n",current->pid);
+    // printk("%d: search_all_container_tid begin\n",current->pid);
 
     if(temp == NULL){       //should not happen
         printk(KERN_ERR "copy from user function fail from find tid\n");
@@ -249,7 +249,7 @@ container_block* search_all_container_tid(int tid){
     while(temp != NULL){
         if(find_tid(tid,temp) != NULL){
             //debug statement
-            printk("    %d: search_all_container_tid return: find container\n",current->pid);
+            // printk("    %d: search_all_container_tid return: find container\n",current->pid);
             return temp;
         }
         else{
@@ -257,7 +257,7 @@ container_block* search_all_container_tid(int tid){
         }
     }
     //debug statement
-    printk("    %d: search_all_container_tid return: not find container\n",current->pid);
+    // printk("    %d: search_all_container_tid return: not find container\n",current->pid);
     return NULL;
 }
 
