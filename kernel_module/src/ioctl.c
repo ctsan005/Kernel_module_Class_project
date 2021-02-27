@@ -72,6 +72,7 @@ typedef struct thread_block{
     int cid;    //container id, use for debugging
     int tid;    //thread id, use to search the thread when delete is call
     thread_block* next_thread;      //pointer to the next thread block
+    //next thread will be null if it is the last thread
     thread_block* prev_thread;      //pointer to the prev thread block
     struct task_struct* task_info;  //Use to load the info from current when create   
 } thread_block;
@@ -82,6 +83,7 @@ typedef struct container_block{
     thread_block* last_thread;      //point to the last thread for the container, [question] is it needed
     thread_block* running_thread;   //point to the threade that is running, use for switching
     container_block* next_container;    //point to the next container
+    //next container will be null if it is the last container
     container_block* prev_container;    //point to the previous container
 } container_block;
 
@@ -244,7 +246,7 @@ container_block* search_all_container_tid(int tid){
 }
 
 
-//
+// thread_remove: use as support for delete a thread, need to have the container that contain the thread as input
 int thread_remove(int tid, container_block* cblock){
     container_block* prev = NULL;
     container_block* next = NULL;
@@ -325,6 +327,36 @@ int thread_remove(int tid, container_block* cblock){
     }
 }
 
+// print_all_container_thread: use for debug, print all the container and thread
+void print_all_container_thread(){
+    container_block* temp_container;
+    thread_block* temp_thread;
+    printk("Start to print all the container and thread:\n");
+    
+    if(first_container == NULL){
+        printk("    No container exist\n");
+        return;
+    }
+
+    temp_container = first_container;
+
+    while(temp_container != NULL){
+        printk("    cid = %d\n", temp_container->cid);
+        temp_thread = temp_container->first_thread;
+        if(temp_thread == NULL){
+            printk(KERN_ERR "container is empty but not deleted\n");
+        }
+        while(temp_thread != NULL){
+            printk("        tid = %d\n", temp_thread->tid);
+            temp_thread = temp_thread->next_thread;
+        }
+        temp_container = temp_container->next_container;
+    }
+    printk("finish printing\n\n\n");
+    return;
+
+}
+
 /**
  * Deregister the task from the container.
  * user_cmd does not contain useful information
@@ -365,6 +397,7 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
     }
     //debug statement
     printk("    resource_container_delete return: sucess delete\n");
+    print_all_container_thread();
     return 0;
 }
 
@@ -413,6 +446,7 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     new_thread_create(temp);
     //debug statement
     printk("    resource_container_create return: sucess create\n");    
+    print_all_container_thread();
     return 0;
 }
 
