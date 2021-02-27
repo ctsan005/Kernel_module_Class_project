@@ -144,6 +144,9 @@ container_block* new_container_create(int cid){
         first_container = new_container;
         last_container = new_container;
         switch_target_container = new_container;
+
+        printk("\n\n\n\n");
+        printk("Begin to build the first container");
     }
     else{       //else, update the last container
         last_container->next_container = new_container;
