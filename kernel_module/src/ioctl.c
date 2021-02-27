@@ -68,6 +68,7 @@
 */
 typedef struct thread_block thread_block;
 typedef struct container_block container_block;
+typedef struct memory_block memory_block;
 typedef struct thread_block{
     int cid;    //container id, use for debugging
     int tid;    //thread id, use to search the thread when delete is call
@@ -85,7 +86,15 @@ typedef struct container_block{
     container_block* next_container;    //point to the next container
     //next container will be null if it is the last container
     container_block* prev_container;    //point to the previous container
+    memory_block* first_memory;
+    memory_block* last_memory;
+
 } container_block;
+
+typedef struct memory_block{
+    void* m_address;
+    int oid;
+} memory_block;
 
 container_block* first_container = NULL;        //Use to check the first container
 container_block* last_container = NULL;         //use to check the last container
@@ -546,7 +555,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 
     //remap_pfn_range can be use?
     //debug statement
-    printk("resource_container_mmap start\n"); 
+    printk("%d: resource_container_mmap start\n", current->pid); 
 
     temp_container = search_all_container_tid(current->pid);
 
@@ -557,7 +566,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
         printk("The cid for container is %d", temp_container->cid);
     }
 
-    printk("The vma page offset value is: %lu", vma->vm_pgoff);
+    // printk("The vma page offset value is: %lu", vma->vm_pgoff);
 
     //debug statement
     printk("resource_container_mmap end\n"); 
