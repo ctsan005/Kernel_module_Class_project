@@ -478,6 +478,7 @@ memory_block* new_memory_create(container_block* cblock, unsigned long int oid, 
     }
     else{
         new_memory->prev_memory = cblock->last_memory;
+        cblock->last_memory->next_memory = new_memory;
         cblock->last_memory = new_memory;
     }
     return new_memory;
