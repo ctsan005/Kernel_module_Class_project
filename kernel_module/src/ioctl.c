@@ -326,7 +326,7 @@ int thread_remove(int tid, container_block* cblock){
             return -1;
         }
         else if(prev_thread == NULL){                  //current thread is the first thread
-            cblock->first_thread = next;
+            cblock->first_thread = next_thread;
             next_thread->prev_thread = NULL;
 
             if(temp == cblock->running_thread){
@@ -335,7 +335,7 @@ int thread_remove(int tid, container_block* cblock){
             }
         }
         else if(next_thread == NULL){                  //current thread is the last thread
-            cblock->last_thread = prev;
+            cblock->last_thread = prev_thread;
             prev_thread->next_thread = NULL;
             if(temp == cblock->running_thread){
                 cblock->running_thread = cblock->first_thread;
