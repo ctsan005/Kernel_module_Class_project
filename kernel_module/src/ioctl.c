@@ -97,6 +97,8 @@ container_block* switch_target_container = NULL;    //Use to see which container
 // output: NULL if the container does not esist, else the target's container address.
 container_block* search_container_create(int cid){
     container_block* temp;
+    //debug statement
+    printk("Called search container create, support for create function\n");
     // no container
     if(first_container == NULL){
         return NULL;
@@ -121,6 +123,9 @@ container_block* search_container_create(int cid){
 container_block* new_container_create(int cid){
     container_block* new_container = (container_block *)kmalloc(sizeof( container_block ) , GFP_KERNEL);    //allocate space for new container, use GFP_KERNEL because it should only be access by kernel 
     //input basic information for the new container block
+
+    //debug statement
+    printk("Called new container create, support for create function\n");
     new_container->cid = cid;
     new_container->first_thread = NULL;
     new_container->next_container = NULL;
@@ -148,6 +153,9 @@ thread_block* new_thread_create(container_block* cblock){
 
     thread_block* temp = cblock->first_thread;
     thread_block* new_thread = (thread_block *)kmalloc(sizeof( thread_block ) , GFP_KERNEL);        //allocate space for thread_block
+
+    //debug statement
+    printk("Called new thread create, support for create\n");
     new_thread->task_info = current;
     new_thread->cid = cblock->cid;
     new_thread->next_thread = NULL;
@@ -180,6 +188,9 @@ thread_block* new_thread_create(container_block* cblock){
 thread_block* find_tid(int tid, container_block* cblock){
     thread_block* temp = cblock->first_thread;
 
+    //debug statement
+    printk("Called find tid function, support for create and delete\n");
+
     if(temp == NULL){       //should not happen
         printk(KERN_ERR "copy from user function fail from find tid\n");
         return NULL;
@@ -200,6 +211,9 @@ thread_block* find_tid(int tid, container_block* cblock){
 //return contain_block if find, else return NULL
 container_block* search_all_container_tid(int tid){
     container_block* temp = first_container;
+
+    //debug statement
+    printk("Called search all container tid function, support for main create\n");
 
     if(temp == NULL){       //should not happen
         printk(KERN_ERR "copy from user function fail from find tid\n");
@@ -223,6 +237,10 @@ int thread_remove(int tid, container_block* cblock){
     container_block* prev = NULL;
     container_block* next = NULL;
     thread_block* temp = NULL;
+
+    //debug statement
+    printk("Called thread remove function, support for main delete\n");
+
     //case 1: only 1 thread within the cblock
     if(cblock->first_thread == cblock->last_thread){
         temp = cblock->first_thread;
@@ -301,6 +319,9 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
     struct resource_container_cmd cmd;
     int target_tid = 0;
     container_block* temp_container = NULL;
+
+    //debug statement
+    printk("Called main delete function\n");
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         printk(KERN_ERR "copy from user function fail from resource container delete\n");
@@ -353,11 +374,14 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     struct resource_container_cmd cmd;
     container_block* temp = NULL;
 
+    //debug output
+    printk("Called main create function\n");
+
 
     // copy_from_user return 0 if it is success
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
-        printk(KERN_ERR "copy from user function fail from resource container create");
+        printk(KERN_ERR "copy from user function fail from resource container create\n");
         return -1;
     }
 
