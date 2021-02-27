@@ -93,7 +93,9 @@ typedef struct container_block{
 
 typedef struct memory_block{
     void* m_address;
-    int oid;
+    unsigned long int oid;
+    memory_block* next_memory;
+    memory_block* prev_memory;
 } memory_block;
 
 container_block* first_container = NULL;        //Use to check the first container
@@ -148,6 +150,8 @@ container_block* new_container_create(int cid){
     new_container->last_thread = NULL;
     new_container->running_thread = NULL;
     new_container->prev_container = NULL;
+    new_container->first_memory = NULL;
+    new_container->last_memory = NULL;
     //if it is the first container created, update first_container and switch_target_container
     if(first_container == NULL){
         first_container = new_container;
@@ -423,6 +427,55 @@ void print_all_container_thread(void){
 
 }
 
+// search to see do a memory block exist within the cblock
+memory_block* search_memory(container_block* cblock, unsigned long int oid){
+
+    memory_block* temp = cblock->first_memory;
+
+    while(temp != NULL){
+        if(temp->oid == oid){
+            return temp;
+        }
+        else{
+            temp = temp->next_memory;
+        }
+    }
+
+    return NULL;
+    
+}
+
+memory_block* new_memory_create(container_block* cblock, unsigned long int oid, unsigned long size){
+    memory_block* new_memory = (memory_block *)kmalloc(sizeof( memory_block ) , GFP_KERNEL);
+
+    new_memory->oid = oid;
+    new_memory->m_address = kzalloc(size, GFP_KERNEL);
+    new_memory->next_memory = NULL;
+    
+    if(cblock->first_memory == NULL){
+        cblock->first_memory = new_memory;
+        cblock->last_memory = new_memory;
+        new_memory->prev_memory = NULL;
+    }
+    else{
+        new_memory->prev_memory = cblock->last_memory;
+        cblock->last_memory = new_memory;
+    }
+    return new_memory;
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
 /**
  * Deregister the task from the container.
  * user_cmd does not contain useful information
@@ -552,6 +605,8 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 {
     int ret;
     container_block* temp_container;
+    memory_block* temp_memory = NULL;
+    unsigned long pfn;
 
     //remap_pfn_range can be use?
     //debug statement
@@ -559,11 +614,26 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 
     temp_container = search_all_container_tid(current->pid);
 
-    if(temp_container == NULL){
-        printk("container not found with pid: %d", current->pid);
+    // if(temp_container == NULL){
+    //     printk("container not found with pid: %d", current->pid);
+    // }
+    // else{
+    //     printk("The cid for container is %d", temp_container->cid);
+    // }
+
+    temp_memory = search_memory(temp_container, vma->vm_pgoff);
+
+    if(temp_memory == NULL){
+        temp_memory = new_memory_create(temp_container, vma->vm_pgoff, vma->vm_end - vma->vm_start);
     }
-    else{
-        printk("The cid for container is %d", temp_container->cid);
+
+    pfn = virt_to_phys((void *)kmalloc_area);
+
+    ret = remap_pfn_range(vma, vma->vm_start, pfn, vma->vm_end - vma->vm_start, vma->vm_page_prot);
+
+    if (ret < 0) {
+        printk(KERN_ERR "Wrong with mapping data");
+        return ret;
     }
 
     // printk("The vma page offset value is: %lu", vma->vm_pgoff);
