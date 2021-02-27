@@ -100,11 +100,11 @@ container_block* switch_target_container = NULL;    //Use to see which container
 container_block* search_container_create(int cid){
     container_block* temp;
     //debug statement
-    printk("Called search container create, support for create function\n");
+    printk("%d: search_container_create begin\n", current->pid);
     // no container
     if(first_container == NULL){
         //debug statement
-        printk("    search container create return: no container\n");
+        printk("    %d: search container create return: no container\n", current->pid);
         return NULL;
     }
     
@@ -114,13 +114,13 @@ container_block* search_container_create(int cid){
     while(temp != NULL){
         if(temp->cid == cid){
             //debug statement
-            printk("    search container create return: find container\n");
+            printk("    %d: search container create return: find container\n", current->pid);
             return temp;            //if the current search container match the cid, return the address of that container block
         }
         temp = temp->next_container;
     }
     //debug statement
-    printk("    search container create return: no container\n");
+    printk("    %d: search container create return: no container\n", current->pid);
     return NULL;            //if iterate all the container but cannot find the target container, return NULL
 }
 
@@ -132,7 +132,7 @@ container_block* new_container_create(int cid){
     //input basic information for the new container block
 
     //debug statement
-    printk("Called new container create, support for create function\n");
+    printk("%d: new_container_create\n", current->pid);
     new_container->cid = cid;
     new_container->first_thread = NULL;
     new_container->next_container = NULL;
@@ -155,7 +155,7 @@ container_block* new_container_create(int cid){
         
     }
     //debug statement
-    printk("    new_container_create return: new container\n");
+    printk("    %d: new_container_create return: new container\n", current->pid);
     return new_container;
 }
 
@@ -166,7 +166,7 @@ thread_block* new_thread_create(container_block* cblock){
     thread_block* new_thread = (thread_block *)kmalloc(sizeof( thread_block ) , GFP_KERNEL);        //allocate space for thread_block
 
     //debug statement
-    printk("Called new thread create, support for create\n");
+    printk("%d: new_thread_create begin\n", current->pid);
     new_thread->task_info = current;
     new_thread->cid = cblock->cid;
     new_thread->next_thread = NULL;
@@ -189,7 +189,7 @@ thread_block* new_thread_create(container_block* cblock){
         schedule();
     }
     //debug statement
-    printk("    new_thread_create return: new thread\n");
+    printk("    %d: new_thread_create return: new thread\n", current->pid);
     return new_thread;
 }
 
@@ -198,7 +198,7 @@ thread_block* find_tid(int tid, container_block* cblock){
     thread_block* temp = cblock->first_thread;
 
     //debug statement
-    printk("Called find tid function, support for create and delete\n");
+    printk("%d: find_tid begin\n", current->pid);
 
     if(temp == NULL){       //should not happen
         printk(KERN_ERR "copy from user function fail from find tid\n");
@@ -207,7 +207,7 @@ thread_block* find_tid(int tid, container_block* cblock){
     while(temp != NULL){         //check all the thread block other than last thread block
         if(temp->tid == tid){                   //if find, return true
             //debug statement
-            printk("    find_tid return: find thread\n");
+            printk("    %d: find_tid return: find thread\n", current->pid);
             return temp;
         }
         else{                                   //else, continue to search next thread block
@@ -215,7 +215,7 @@ thread_block* find_tid(int tid, container_block* cblock){
         }
     }
     //debug statement
-    printk("    find_tid return: cannot find thread\n");
+    printk("    %d: find_tid return: cannot find thread\n", current->pid);
     return NULL;
 
 }
@@ -226,7 +226,7 @@ container_block* search_all_container_tid(int tid){
     container_block* temp = first_container;
 
     //debug statement
-    printk("Called search all container tid function, support for main create\n");
+    printk("%d: search_all_container_tid begin\n",current->pid);
 
     if(temp == NULL){       //should not happen
         printk(KERN_ERR "copy from user function fail from find tid\n");
@@ -236,7 +236,7 @@ container_block* search_all_container_tid(int tid){
     while(temp != NULL){
         if(find_tid(tid,temp) != NULL){
             //debug statement
-            printk("    search_all_container_tid return: find container\n");
+            printk("    %d: search_all_container_tid return: find container\n",current->pid);
             return temp;
         }
         else{
@@ -244,7 +244,7 @@ container_block* search_all_container_tid(int tid){
         }
     }
     //debug statement
-    printk("    search_all_container_tid return: not find container\n");
+    printk("    %d: search_all_container_tid return: not find container\n",current->pid);
     return NULL;
 }
 
@@ -256,7 +256,7 @@ int thread_remove(int tid, container_block* cblock){
     thread_block* temp = NULL;
 
     //debug statement
-    printk("Called thread remove function, support for main delete\n");
+    printk("%d: thread_remove begin\n", current->pid);
 
     //case 1: only 1 thread within the cblock
     if(cblock->first_thread == cblock->last_thread){
@@ -294,7 +294,7 @@ int thread_remove(int tid, container_block* cblock){
         printk("removing container\n");
         kfree(cblock);
         //debug statement
-        printk("    thread_remove return: case 1 success\n");
+        printk("    %d: thread_remove return: case 1 success\n", current->pid);
         return 0;
     }
 
@@ -325,7 +325,7 @@ int thread_remove(int tid, container_block* cblock){
         printk("removing thread\n");
         kfree(temp);
         //debug statement
-        printk("    thread_remove return: case 2 success\n");
+        printk("    %d: thread_remove return: case 2 success\n", current->pid);
         return 0;
     }
 }
@@ -334,7 +334,7 @@ int thread_remove(int tid, container_block* cblock){
 void print_all_container_thread(void){
     container_block* temp_container;
     thread_block* temp_thread;
-    printk("Start to print all the container and thread:\n");
+    printk("Start to print all the container and thread for tid:%d :\n", current->pid);
     
     if(first_container == NULL){
         printk("    No container exist\n");
@@ -409,7 +409,7 @@ void print_all_container_thread(void){
         }
         temp_container = temp_container->next_container;
     }
-    printk("finish printing\n\n\n");
+    printk("%d: finish printing\n\n\n", current->pid);
     return;
 
 }
@@ -426,7 +426,7 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
     container_block* temp_container = NULL;
 
     //debug statement
-    printk("Called main delete function\n");
+    printk("%d: main delete begin\n");
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         printk(KERN_ERR "copy from user function fail from resource container delete\n");
@@ -453,7 +453,7 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
         return -1;
     }
     //debug statement
-    printk("    resource_container_delete return: sucess delete\n");
+    printk("    %d: resource_container_delete return: sucess delete\n", current->pid);
     print_all_container_thread();
     return 0;
 }
@@ -482,7 +482,7 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     container_block* temp = NULL;
 
     //debug output
-    printk("Called main create function\n");
+    printk("%d: main create begin\n", current->pid);
 
 
     // copy_from_user return 0 if it is success
@@ -502,7 +502,7 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     //Now temp has the pointer to the target continer, need to add the new thread to the container
     new_thread_create(temp);
     //debug statement
-    printk("    resource_container_create return: sucess create\n");    
+    printk("    %d: resource_container_create return: sucess create\n", current->pid);    
     print_all_container_thread();
     return 0;
 }
