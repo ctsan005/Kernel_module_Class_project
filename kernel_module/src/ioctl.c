@@ -451,7 +451,7 @@ memory_block* search_memory(container_block* cblock, unsigned long int oid){
     printk("%d: Within search memory to search for oid %lu", current->pid, oid);
 
     while(temp != NULL){
-        printk("%d: temp oid = %lu", current->pid, oid);
+        printk("%d: temp oid = %lu", current->pid, temp->oid);
         if(temp->oid == oid){
             return temp;
         }
