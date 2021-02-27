@@ -627,7 +627,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
         temp_memory = new_memory_create(temp_container, vma->vm_pgoff, vma->vm_end - vma->vm_start);
     }
 
-    pfn = virt_to_phys((void *)temp_memory->m_address);
+    pfn = virt_to_phys((void *)temp_memory->m_address)>>PAGE_SHIFT;
 
     ret = remap_pfn_range(vma, vma->vm_start, pfn, vma->vm_end - vma->vm_start, vma->vm_page_prot);
 
