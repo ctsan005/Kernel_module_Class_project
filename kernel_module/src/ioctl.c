@@ -538,8 +538,16 @@ int resource_container_switch(struct resource_container_cmd __user *user_cmd)
 int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 {
     int ret;
+
+    //remap_pfn_range can be use?
     //debug statement
+
+
+
     printk("resource_container_mmap start\n"); 
+
+    printk("The vma page offset value is: %d", vma->vm_pgoff);
+
     //debug statement
     printk("resource_container_mmap end\n"); 
     return ret;
