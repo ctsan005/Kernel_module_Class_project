@@ -341,13 +341,67 @@ void print_all_container_thread(){
     temp_container = first_container;
 
     while(temp_container != NULL){
-        printk("    cid = %d\n", temp_container->cid);
+        printk("    cid = %d", temp_container->cid);
+        //check first thread
+        if(temp_container->first_thread == NULL){
+            printk(", first thread NULL");
+        }
+        else{
+            printk(", first thread exist");
+        }
+        //check last thread
+        if(temp_container->last_thread == NULL){
+            printk(", last thread NULL");
+        }
+        else{
+            printk(", last thread exist");
+        }
+        //check running thread
+        if(temp_container->running_thread == NULL){
+            printk(", running thread NULL");
+        }
+        else{
+            printk(", running thread exist");
+        }
+        //check next container
+        if(temp_container->next_container == NULL){
+            printk(", next_container NULL");
+        }
+        else{
+            printk(", next_container exist");
+        }
+        //check prev container
+        if(temp_container->prev_container == NULL){
+            printk(", prev_container NULL");
+        }
+        else{
+            printk(", prev_container exist");
+        }
+        printk("\n");
+
         temp_thread = temp_container->first_thread;
         if(temp_thread == NULL){
             printk(KERN_ERR "container is empty but not deleted\n");
         }
+
         while(temp_thread != NULL){
-            printk("        tid = %d\n", temp_thread->tid);
+            printk("        tid = %d", temp_thread->tid);
+            printk(", cid = %d", temp_thread->cid);
+            //check next thread
+            if(temp_thread->next_thread == NULL){
+                printk(", next_thread NULL");
+            }
+            else{
+                printk(", next_thread exist");
+            }
+            //check next thread
+            if(temp_thread->prev_thread == NULL){
+                printk(", prev_thread NULL");
+            }
+            else{
+                printk(", prev_thread exist");
+            }
+            printk("\n");
             temp_thread = temp_thread->next_thread;
         }
         temp_container = temp_container->next_container;
