@@ -426,7 +426,7 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
     container_block* temp_container = NULL;
 
     //debug statement
-    printk("%d: main delete begin\n");
+    printk("%d: main delete begin\n", current->pid);
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         printk(KERN_ERR "copy from user function fail from resource container delete\n");
