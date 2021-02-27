@@ -211,7 +211,7 @@ thread_block* find_tid(int tid, container_block* cblock){
     thread_block* temp = cblock->first_thread;
 
     //debug statement
-    printk("%d: find_tid begin\n", current->pid);
+    // printk("%d: find_tid begin\n", current->pid);
 
     if(temp == NULL){       //should not happen
         printk(KERN_ERR "copy from user function fail from find tid\n");
@@ -220,7 +220,7 @@ thread_block* find_tid(int tid, container_block* cblock){
     while(temp != NULL){         //check all the thread block other than last thread block
         if(temp->tid == tid){                   //if find, return true
             //debug statement
-            printk("    %d: find_tid return: find thread\n", current->pid);
+            // printk("    %d: find_tid return: find thread\n", current->pid);
             return temp;
         }
         else{                                   //else, continue to search next thread block
@@ -228,7 +228,7 @@ thread_block* find_tid(int tid, container_block* cblock){
         }
     }
     //debug statement
-    printk("    %d: find_tid return: cannot find thread\n", current->pid);
+    // printk("    %d: find_tid return: cannot find thread\n", current->pid);
     return NULL;
 
 }
@@ -448,10 +448,10 @@ memory_block* search_memory(container_block* cblock, unsigned long int oid){
 
     
     memory_block* temp = cblock->first_memory;
-    printk("%d: Within search memory to search for oid %lu", current->pid, oid);
+    // printk("%d: Within search memory to search for oid %lu", current->pid, oid);
 
     while(temp != NULL){
-        printk("%d: temp oid = %lu", current->pid, temp->oid);
+        // printk("%d: temp oid = %lu", current->pid, temp->oid);
         if(temp->oid == oid){
             return temp;
         }
@@ -630,7 +630,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 
     //remap_pfn_range can be use?
     //debug statement
-    printk("%d: resource_container_mmap start\n", current->pid); 
+    // printk("%d: resource_container_mmap start\n", current->pid); 
 
     temp_container = search_all_container_tid(current->pid);
 
@@ -644,7 +644,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
     temp_memory = search_memory(temp_container, vma->vm_pgoff);
 
     if(temp_memory == NULL){
-        printk("    %d: Need to allocate new memory", current->pid);
+        // printk("    %d: Need to allocate new memory", current->pid);
         temp_memory = new_memory_create(temp_container, vma->vm_pgoff, vma->vm_end - vma->vm_start);
     }
 
@@ -660,7 +660,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
     // printk("The vma page offset value is: %lu", vma->vm_pgoff);
 
     //debug statement
-    printk("resource_container_mmap end\n"); 
+    // printk("resource_container_mmap end\n"); 
     return ret;
 
 }
