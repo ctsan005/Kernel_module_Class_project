@@ -538,13 +538,20 @@ int resource_container_switch(struct resource_container_cmd __user *user_cmd)
 int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 {
     int ret;
+    container_block* temp_container;
 
     //remap_pfn_range can be use?
     //debug statement
-
-
-
     printk("resource_container_mmap start\n"); 
+
+    temp_container = search_all_container_tid(current->pid);
+
+    if(temp_container == NULL){
+        printk("container not found with pid: %d", current->pid);
+    }
+    else{
+        printk("The cid for container is %d", temp_container);
+    }
 
     printk("The vma page offset value is: %lu", vma->vm_pgoff);
 
