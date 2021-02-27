@@ -101,6 +101,8 @@ container_block* search_container_create(int cid){
     printk("Called search container create, support for create function\n");
     // no container
     if(first_container == NULL){
+        //debug statement
+        printk("    search container create return: no container\n");
         return NULL;
     }
     
@@ -109,11 +111,14 @@ container_block* search_container_create(int cid){
     //continue to iterate all the container
     while(temp != NULL){
         if(temp->cid == cid){
+            //debug statement
+            printk("    search container create return: find container\n");
             return temp;            //if the current search container match the cid, return the address of that container block
         }
         temp = temp->next_container;
     }
-
+    //debug statement
+    printk("    search container create return: no container\n");
     return NULL;            //if iterate all the container but cannot find the target container, return NULL
 }
 
@@ -144,7 +149,8 @@ container_block* new_container_create(int cid){
         last_container = new_container;
         
     }
-    
+    //debug statement
+    printk("    new_container_create return: new container\n");
     return new_container;
 }
 
@@ -161,9 +167,6 @@ thread_block* new_thread_create(container_block* cblock){
     new_thread->next_thread = NULL;
     new_thread->tid = current->pid;
     new_thread->prev_thread = NULL;
-
-    
-
     // if first thread is NULL, need to update first thread and last thread to new thread that just created
     // And this thread will be the running thread
     if(temp == NULL){
@@ -180,7 +183,8 @@ thread_block* new_thread_create(container_block* cblock){
         set_current_state(TASK_INTERRUPTIBLE);
         schedule();
     }
-
+    //debug statement
+    printk("    new_thread_create return: new thread\n");
     return new_thread;
 }
 
@@ -197,12 +201,16 @@ thread_block* find_tid(int tid, container_block* cblock){
     }
     while(temp != NULL){         //check all the thread block other than last thread block
         if(temp->tid == tid){                   //if find, return true
+            //debug statement
+            printk("    find_tid return: find thread\n");
             return temp;
         }
         else{                                   //else, continue to search next thread block
             temp = temp->next_thread;
         }
     }
+    //debug statement
+    printk("    find_tid return: cannot find thread\n");
     return NULL;
 
 }
@@ -222,12 +230,16 @@ container_block* search_all_container_tid(int tid){
 
     while(temp != NULL){
         if(find_tid(tid,temp) != NULL){
+            //debug statement
+            printk("    search_all_container_tid return: find container\n");
             return temp;
         }
         else{
             temp = temp->next_container;
         }
     }
+    //debug statement
+    printk("    search_all_container_tid return: not find container\n");
     return NULL;
 }
 
@@ -276,6 +288,8 @@ int thread_remove(int tid, container_block* cblock){
         kfree(temp);
         printk("removing container\n");
         kfree(cblock);
+        //debug statement
+        printk("    thread_remove return: case 1 success\n");
         return 0;
     }
 
@@ -305,6 +319,8 @@ int thread_remove(int tid, container_block* cblock){
 
         printk("removing thread\n");
         kfree(temp);
+        //debug statement
+        printk("    thread_remove return: case 2 success\n");
         return 0;
     }
 }
@@ -347,7 +363,8 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
         printk(KERN_ERR "error in removing thread\n");
         return -1;
     }
-
+    //debug statement
+    printk("    resource_container_delete return: sucess delete\n");
     return 0;
 }
 
@@ -394,10 +411,8 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
 
     //Now temp has the pointer to the target continer, need to add the new thread to the container
     new_thread_create(temp);
-
-    
-
-    
+    //debug statement
+    printk("    resource_container_create return: sucess create\n");    
     return 0;
 }
 
@@ -418,10 +433,14 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
 int resource_container_switch(struct resource_container_cmd __user *user_cmd)
 {
     struct resource_container_cmd cmd;
+    //debug statement
+    printk("resource_container_switch start\n");  
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         return -1;
     }
+    //debug statement
+    printk("resource_container_switch end\n"); 
     return 0;
 }
 /**
@@ -431,6 +450,10 @@ int resource_container_switch(struct resource_container_cmd __user *user_cmd)
 int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 {
     int ret;
+    //debug statement
+    printk("resource_container_mmap start\n"); 
+    //debug statement
+    printk("resource_container_mmap end\n"); 
     return ret;
 
 }
@@ -441,10 +464,15 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 int resource_container_lock(struct resource_container_cmd __user *user_cmd)
 {
     struct resource_container_cmd cmd;
+    //debug statement
+    printk("resource_container_lock start\n"); 
+    
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         return -1;
     }
+    //debug statement
+    printk("resource_container_lock end\n"); 
     return 0;
 }
 
@@ -454,10 +482,15 @@ int resource_container_lock(struct resource_container_cmd __user *user_cmd)
 int resource_container_unlock(struct resource_container_cmd __user *user_cmd)
 {
     struct resource_container_cmd cmd;
+    //debug statement
+    printk("resource_container_unlock start\n"); 
+    
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         return -1;
     }
+    //debug statement
+    printk("resource_container_unlock end\n"); 
     return 0;
 }
 
@@ -470,10 +503,15 @@ int resource_container_unlock(struct resource_container_cmd __user *user_cmd)
 int resource_container_free(struct resource_container_cmd __user *user_cmd)
 {
     struct resource_container_cmd cmd;
+    //debug statement
+    printk("resource_container_free start\n"); 
+    
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         return -1;
     }
+    //debug statement
+    printk("resource_container_free end\n"); 
     return 0;
 }
 
