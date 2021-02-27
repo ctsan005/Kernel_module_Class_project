@@ -667,14 +667,14 @@ int resource_container_lock(struct resource_container_cmd __user *user_cmd)
 {
     struct resource_container_cmd cmd;
     //debug statement
-    printk("resource_container_lock start\n"); 
+    // printk("resource_container_lock start\n"); 
     
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         return -1;
     }
     //debug statement
-    printk("resource_container_lock end\n"); 
+    // printk("resource_container_lock end\n"); 
     return 0;
 }
 
@@ -685,14 +685,14 @@ int resource_container_unlock(struct resource_container_cmd __user *user_cmd)
 {
     struct resource_container_cmd cmd;
     //debug statement
-    printk("resource_container_unlock start\n"); 
+    // printk("resource_container_unlock start\n"); 
     
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         return -1;
     }
     //debug statement
-    printk("resource_container_unlock end\n"); 
+    // printk("resource_container_unlock end\n"); 
     return 0;
 }
 
@@ -706,14 +706,14 @@ int resource_container_free(struct resource_container_cmd __user *user_cmd)
 {
     struct resource_container_cmd cmd;
     //debug statement
-    printk("resource_container_free start\n"); 
+    // printk("resource_container_free start\n"); 
     
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         return -1;
     }
     //debug statement
-    printk("resource_container_free end\n"); 
+    // printk("resource_container_free end\n"); 
     return 0;
 }
 
