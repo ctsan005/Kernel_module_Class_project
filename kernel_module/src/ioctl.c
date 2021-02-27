@@ -640,6 +640,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
     temp_memory = search_memory(temp_container, vma->vm_pgoff);
 
     if(temp_memory == NULL){
+        printk("    %d: Need to allocate new memory", current->pid);
         temp_memory = new_memory_create(temp_container, vma->vm_pgoff, vma->vm_end - vma->vm_start);
     }
 
