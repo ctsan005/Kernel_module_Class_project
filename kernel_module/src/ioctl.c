@@ -546,7 +546,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 
     printk("resource_container_mmap start\n"); 
 
-    printk("The vma page offset value is: %d", vma->vm_pgoff);
+    printk("The vma page offset value is: %lu", vma->vm_pgoff);
 
     //debug statement
     printk("resource_container_mmap end\n"); 
