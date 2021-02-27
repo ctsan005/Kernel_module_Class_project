@@ -550,7 +550,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
         printk("container not found with pid: %d", current->pid);
     }
     else{
-        printk("The cid for container is %d", temp_container);
+        printk("The cid for container is %d", temp_container->cid);
     }
 
     printk("The vma page offset value is: %lu", vma->vm_pgoff);
