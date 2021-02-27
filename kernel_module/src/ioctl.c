@@ -328,7 +328,7 @@ int thread_remove(int tid, container_block* cblock){
 }
 
 // print_all_container_thread: use for debug, print all the container and thread
-void print_all_container_thread(){
+void print_all_container_thread(void){
     container_block* temp_container;
     thread_block* temp_thread;
     printk("Start to print all the container and thread:\n");
