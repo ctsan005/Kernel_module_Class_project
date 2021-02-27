@@ -267,6 +267,8 @@ int thread_remove(int tid, container_block* cblock){
     container_block* prev = NULL;
     container_block* next = NULL;
     thread_block* temp = NULL;
+    thread_block* prev_thread = NULL;
+    thread_block* next_thread = NULL;
 
     //debug statement
     printk("%d: thread_remove begin\n", current->pid);
@@ -313,26 +315,40 @@ int thread_remove(int tid, container_block* cblock){
 
     //case 2: more than 1 thread within the cblock
     else{
-        thread_block* temp = find_tid(tid,cblock);
+        temp = find_tid(tid,cblock);
 
-        thread_block* prev = temp->prev_thread;
-        thread_block* next = temp->next_thread;
 
-        if(prev == NULL && next == NULL){       // case when it is the only thread, should not happen
+        prev_thread = temp->prev_thread;
+        next_thread = temp->next_thread;
+
+        if(prev_thread == NULL && next_thread == NULL){       // case when it is the only thread, should not happen
             printk(KERN_ERR "wrong with case 2 in thread remove\n");
             return -1;
         }
-        else if(prev == NULL){                  //current thread is the first thread
+        else if(prev_thread == NULL){                  //current thread is the first thread
             cblock->first_thread = next;
-            next->prev_thread = NULL;
+            next_thread->prev_thread = NULL;
+
+            if(temp == cblock->running_thread){
+                cblock->running_thread = next_thread;
+                wake_up_process(next_thread->task_info);
+            }
         }
-        else if(next == NULL){                  //current thread is the last thread
+        else if(next_thread == NULL){                  //current thread is the last thread
             cblock->last_thread = prev;
-            prev->next_thread = NULL;
+            prev_thread->next_thread = NULL;
+            if(temp == cblock->running_thread){
+                cblock->running_thread = cblock->first_thread;
+                wake_up_process(cblock->first_thread->task_info);
+            }
         }
         else{                                   //middle case for thread
-            prev->next_thread = next;
-            next->prev_thread = prev;
+            prev_thread->next_thread = next_thread;
+            next_thread->prev_thread = prev_thread;
+            if(temp == cblock->running_thread){
+                cblock->running_thread = next_thread;
+                wake_up_process(next_thread->task_info);
+            }
         }
 
         printk("removing thread\n");
