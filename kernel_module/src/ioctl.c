@@ -446,8 +446,9 @@ void print_all_container_thread(void){
 // search to see do a memory block exist within the cblock
 memory_block* search_memory(container_block* cblock, unsigned long int oid){
 
-    printk("%d: Within search memory to search for oid %lu", current->pid, oid);
+    
     memory_block* temp = cblock->first_memory;
+    printk("%d: Within search memory to search for oid %lu", current->pid, oid);
 
     while(temp != NULL){
         printk("%d: temp oid = %lu", current->pid, oid);
