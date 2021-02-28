@@ -601,8 +601,10 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     new_thread_create(temp);
     //debug statement
         
-    print_all_container_thread();
+
     mutex_unlock(&mlock);
+    print_all_container_thread();
+    
     printk("    %d: resource_container_create return: sucess create\n", current->pid);
     
     return 0;
