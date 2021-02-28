@@ -67,6 +67,7 @@
  *  4) Maybe add a task struct to keep track the thread? But shouldn't be able to read it from current?
 */
 extern struct mutex mlock;
+extern struct mutex memorylock;
 typedef struct thread_block thread_block;
 typedef struct container_block container_block;
 typedef struct memory_block memory_block;
@@ -586,7 +587,7 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     }
 
     printk("%d: before create lock\n", current->pid);
-    mutex_lock(&mlock);
+    mutex_lock(&memorylock);
     printk("%d: after create lock\n", current->pid);
 
     // copy from write success, cmd contain the cid from the user
@@ -601,7 +602,7 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     //debug statement
         
     print_all_container_thread();
-    mutex_unlock(&mlock);
+    mutex_unlock(&memorylock);
     printk("    %d: resource_container_create return: sucess create\n", current->pid);
     
     return 0;
