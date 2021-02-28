@@ -777,7 +777,6 @@ int resource_container_lock(struct resource_container_cmd __user *user_cmd)
     struct resource_container_cmd cmd;
     container_block* cblock;
     lock_block* lblock;
-    tid_block* tblock;
     //debug statement
     // printk("resource_container_lock start\n"); 
     
