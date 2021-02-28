@@ -73,6 +73,7 @@ typedef struct thread_block thread_block;
 typedef struct container_block container_block;
 typedef struct memory_block memory_block;
 typedef struct lock_block lock_block;
+typedef struct tid_block tid_block;
 typedef struct thread_block{
     int cid;    //container id, use for debugging
     int tid;    //thread id, use to search the thread when delete is call
@@ -101,10 +102,11 @@ typedef struct memory_block{
     unsigned long int oid;
     memory_block* next_memory;
     memory_block* prev_memory;
+    tid_block* first_tid;
+    tid_block* last_tid;
 } memory_block;
 
-typedef struct lock_block
-{
+typedef struct lock_block{
     struct mutex* lock;
     lock_block* next_lock;
     lock_block* prev_lock;
@@ -112,7 +114,10 @@ typedef struct lock_block
     int cid;
 }lock_block;
 
-
+typedef struct tid_block{
+    int tid;
+    tid_block* next_tid;
+}
 container_block* first_container = NULL;        //Use to check the first container
 container_block* last_container = NULL;         //use to check the last container
 container_block* switch_target_container = NULL;    //Use to see which container to do the switch
@@ -481,7 +486,9 @@ memory_block* new_memory_create(container_block* cblock, unsigned long int oid, 
     memory_block* new_memory = (memory_block *)kmalloc(sizeof( memory_block ) , GFP_KERNEL);
     new_memory->oid = oid;
     new_memory->m_address = kzalloc(size, GFP_KERNEL);
-    new_memory->next_memory = NULL;    
+    new_memory->next_memory = NULL; 
+    new_memory->first_tid = NULL;
+    new_memory->last_tid = NULL;   
     if(cblock->first_memory == NULL){
         cblock->first_memory = new_memory;
         cblock->last_memory = new_memory;
@@ -533,7 +540,31 @@ lock_block* new_lock_create(container_block* cblock, int lid){
     return new_memory;
 }
 
+tid_block* search_memory_tid(memory_block* mblock, int tid){
+    tid_block* temp = mblock->first_tid;
+    while(temp != NULL){
+        if(temp->tid == tid){
+            return temp;
+        }
+        temp = temp->next_tid;
+    }
+    return NULL;
+}
 
+tid_block* new_memory_tid_create(memory_block* mblock, int tid){
+    tid_block* temp = (tid_block *)kmalloc(sizeof( tid_block ) , GFP_KERNEL);
+    temp->tid = tid;
+    temp->next_tid = NULL;
+    if(mblock->first_tid == NULL){
+        mblock->first_tid = temp;
+        mblock->last_tid = temp;
+    }
+    else{
+        mblock->last_tid->next_tid = temp;
+        mblock->last_tid = temp;
+    }
+    return temp;    
+}
 
 
 
@@ -688,6 +719,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
     container_block* temp_container;
     memory_block* temp_memory = NULL;
     unsigned long pfn;
+    tid_block* tblock;
 
     //remap_pfn_range can be use?
     //debug statement
@@ -709,6 +741,13 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
     if(temp_memory == NULL){
         // printk("    %d: Need to allocate new memory", current->pid);
         temp_memory = new_memory_create(temp_container, vma->vm_pgoff, vma->vm_end - vma->vm_start);
+    }
+
+    tblock = search_memory_tid(temp_memory, current->pid);
+
+    //search is the tid that use current allocate memory recorded. Use for free the memory when all thread called free
+    if(tblock == NULL){
+        tblock = new_memory_tid_create(temp_memory, current->pid);
     }
 
     pfn = virt_to_phys((void *)temp_memory->m_address)>>PAGE_SHIFT;
@@ -738,6 +777,7 @@ int resource_container_lock(struct resource_container_cmd __user *user_cmd)
     struct resource_container_cmd cmd;
     container_block* cblock;
     lock_block* lblock;
+    tid_block* tblock;
     //debug statement
     // printk("resource_container_lock start\n"); 
     
@@ -751,6 +791,12 @@ int resource_container_lock(struct resource_container_cmd __user *user_cmd)
 
     if(lblock == NULL){
         lblock = new_lock_create(cblock,cmd.oid);
+    }
+
+    // search is the tid record, use for clean up the mmaped space
+    tblock = search_lock_tid(lblock,current->pid );
+    if(tblock == NULL){
+        tblock = new_lock_tid_create(lblock, current->pid);
     }
 
     mutex_lock(lblock->lock);
