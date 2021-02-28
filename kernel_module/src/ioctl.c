@@ -117,7 +117,7 @@ typedef struct lock_block{
 typedef struct tid_block{
     int tid;
     tid_block* next_tid;
-}
+} tid_block;
 container_block* first_container = NULL;        //Use to check the first container
 container_block* last_container = NULL;         //use to check the last container
 container_block* switch_target_container = NULL;    //Use to see which container to do the switch
