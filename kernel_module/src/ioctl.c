@@ -66,6 +66,7 @@
  *  3) The pointer to the next thread within the container
  *  4) Maybe add a task struct to keep track the thread? But shouldn't be able to read it from current?
 */
+static DEFINE_MUTEX(mLock);
 typedef struct thread_block thread_block;
 typedef struct container_block container_block;
 typedef struct memory_block memory_block;
@@ -507,6 +508,8 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
     int target_tid = 0;
     container_block* temp_container = NULL;
 
+    
+
     //debug statement
     printk("%d: main delete begin\n", current->pid);
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
@@ -515,11 +518,14 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
         return -1;
     }
 
+    mutex_lock(&mlock);
+
     // Need to find the current thread information and remove it from the container
     target_tid = current->pid;       //find the current thread pid
 
     if(first_container == NULL){    //no container case
         printk(KERN_ERR "copy from user function fail from resource container create\n");
+        mutex_unlock(&mlock);
         return -1;
     }
 
@@ -527,16 +533,19 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
 
     if(temp_container == NULL){
         printk(KERN_ERR "Not find thread in anywhere in the kernel\n");
+        mutex_unlock(&mlock);
         return -1;
     }
 
     if(thread_remove(target_tid,temp_container) == -1){
         printk(KERN_ERR "error in removing thread\n");
+        mutex_unlock(&mlock);
         return -1;
     }
     //debug statement
     printk("    %d: resource_container_delete return: sucess delete\n", current->pid);
     print_all_container_thread();
+    mutex_unlock(&mlock);
     return 0;
 }
 
@@ -574,6 +583,8 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
         return -1;
     }
 
+    mutex_lock(&mlock);
+
     // copy from write success, cmd contain the cid from the user
     temp = search_container_create(cmd.cid);      //search does a container block exist already
 
@@ -587,6 +598,7 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
         
     print_all_container_thread();
     printk("    %d: resource_container_create return: sucess create\n", current->pid);
+    mutex_unlock(&mlock);
     return 0;
 }
 
@@ -632,6 +644,8 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
     //debug statement
     // printk("%d: resource_container_mmap start\n", current->pid); 
 
+    mutex_lock(&mlock);
+
     temp_container = search_all_container_tid(current->pid);
 
     // if(temp_container == NULL){
@@ -654,13 +668,15 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 
     if (ret < 0) {
         printk(KERN_ERR "Wrong with mapping data");
+        mutex_unlock(&mlock);
         return ret;
     }
 
     // printk("The vma page offset value is: %lu", vma->vm_pgoff);
 
     //debug statement
-    // printk("resource_container_mmap end\n"); 
+    // printk("resource_container_mmap end\n");
+    mutex_unlock(&mlock); 
     return ret;
 
 }
