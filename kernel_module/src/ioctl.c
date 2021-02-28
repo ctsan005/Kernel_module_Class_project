@@ -66,7 +66,7 @@
  *  3) The pointer to the next thread within the container
  *  4) Maybe add a task struct to keep track the thread? But shouldn't be able to read it from current?
 */
-static DEFINE_MUTEX(mLock);
+extern struct mutex mlock;
 typedef struct thread_block thread_block;
 typedef struct container_block container_block;
 typedef struct memory_block memory_block;

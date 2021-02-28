@@ -47,6 +47,8 @@
 
 extern struct miscdevice resource_container_dev;
 
+struct mutex mlock;
+
 int resource_container_init(void)
 {
     int ret, i;
@@ -57,6 +59,7 @@ int resource_container_init(void)
         return ret;
     }
     printk("Resource container kernel module installed\n");
+    mutex_init(&mlock);
     return ret;
 }
 
