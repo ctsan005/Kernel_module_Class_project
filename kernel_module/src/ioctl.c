@@ -587,7 +587,7 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     }
 
     printk("%d: before create lock\n", current->pid);
-    mutex_lock(&memorylock);
+    mutex_lock(&mlock);
     printk("%d: after create lock\n", current->pid);
 
     // copy from write success, cmd contain the cid from the user
@@ -602,7 +602,7 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     //debug statement
         
     print_all_container_thread();
-    mutex_unlock(&memorylock);
+    mutex_unlock(&mlock);
     printk("    %d: resource_container_create return: sucess create\n", current->pid);
     
     return 0;
@@ -650,7 +650,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
     //debug statement
     printk("%d: resource_container_mmap start\n", current->pid); 
 
-    mutex_lock(&mlock);
+    mutex_lock(&memorylock);
 
     temp_container = search_all_container_tid(current->pid);
 
@@ -674,7 +674,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 
     if (ret < 0) {
         printk(KERN_ERR "Wrong with mapping data");
-        mutex_unlock(&mlock);
+        mutex_unlock(&memorylock);
         return ret;
     }
 
