@@ -511,14 +511,16 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
     
 
     //debug statement
-    printk("%d: main delete begin\n", current->pid);
+    // printk("%d: main delete begin\n", current->pid);
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         printk(KERN_ERR "copy from user function fail from resource container delete\n");
         return -1;
     }
 
+    printk("%d: before delete lock\n", current->pid);
     mutex_lock(&mlock);
+    printk("%d: after delete lock\n", current->pid);
 
     // Need to find the current thread information and remove it from the container
     target_tid = current->pid;       //find the current thread pid
@@ -573,7 +575,7 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     container_block* temp = NULL;
 
     //debug output
-    printk("%d: main create begin\n", current->pid);
+    // printk("%d: main create begin\n", current->pid);
 
 
     // copy_from_user return 0 if it is success
@@ -583,7 +585,9 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
         return -1;
     }
 
+    printk("%d: before create lock\n", current->pid);
     mutex_lock(&mlock);
+    printk("%d: after create lock\n", current->pid);
 
     // copy from write success, cmd contain the cid from the user
     temp = search_container_create(cmd.cid);      //search does a container block exist already
