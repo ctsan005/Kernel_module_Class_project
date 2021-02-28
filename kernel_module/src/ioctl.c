@@ -765,6 +765,8 @@ int resource_container_lock(struct resource_container_cmd __user *user_cmd)
 int resource_container_unlock(struct resource_container_cmd __user *user_cmd)
 {
     struct resource_container_cmd cmd;
+    container_block* cblock;
+    lock_block* lblock;
     //debug statement
     // printk("resource_container_unlock start\n"); 
     
