@@ -652,7 +652,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
     //debug statement
     printk("%d: resource_container_mmap start\n", current->pid); 
 
-    mutex_lock(&memorylock);
+    mutex_lock(&mlock);
 
     temp_container = search_all_container_tid(current->pid);
 
@@ -676,7 +676,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 
     if (ret < 0) {
         printk(KERN_ERR "Wrong with mapping data");
-        mutex_unlock(&memorylock);
+        mutex_unlock(&mlock);
         return ret;
     }
 
