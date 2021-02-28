@@ -793,11 +793,6 @@ int resource_container_lock(struct resource_container_cmd __user *user_cmd)
         lblock = new_lock_create(cblock,cmd.oid);
     }
 
-    // search is the tid record, use for clean up the mmaped space
-    tblock = search_lock_tid(lblock,current->pid );
-    if(tblock == NULL){
-        tblock = new_lock_tid_create(lblock, current->pid);
-    }
 
     mutex_lock(lblock->lock);
     //debug statement
