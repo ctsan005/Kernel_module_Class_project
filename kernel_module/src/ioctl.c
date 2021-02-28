@@ -642,7 +642,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 
     //remap_pfn_range can be use?
     //debug statement
-    // printk("%d: resource_container_mmap start\n", current->pid); 
+    printk("%d: resource_container_mmap start\n", current->pid); 
 
     mutex_lock(&mlock);
 
