@@ -68,9 +68,11 @@
 */
 extern struct mutex mlock;
 extern struct mutex memorylock;
+// typedef struct mutex mutex;
 typedef struct thread_block thread_block;
 typedef struct container_block container_block;
 typedef struct memory_block memory_block;
+typedef struct lock_block lock_block;
 typedef struct thread_block{
     int cid;    //container id, use for debugging
     int tid;    //thread id, use to search the thread when delete is call
@@ -90,7 +92,8 @@ typedef struct container_block{
     container_block* prev_container;    //point to the previous container
     memory_block* first_memory;
     memory_block* last_memory;
-
+    lock_block* first_lock;
+    lock_block* last_lock;
 } container_block;
 
 typedef struct memory_block{
@@ -99,6 +102,16 @@ typedef struct memory_block{
     memory_block* next_memory;
     memory_block* prev_memory;
 } memory_block;
+
+typedef struct lock_block
+{
+    struct mutex* lock;
+    lock_block* next_lock;
+    lock_block* prev_lock;
+    int lid;
+    int cid;
+}lock_block;
+
 
 container_block* first_container = NULL;        //Use to check the first container
 container_block* last_container = NULL;         //use to check the last container
@@ -154,6 +167,8 @@ container_block* new_container_create(int cid){
     new_container->prev_container = NULL;
     new_container->first_memory = NULL;
     new_container->last_memory = NULL;
+    new_container->first_lock = NULL;
+    new_container->last_lock = NULL;
     //if it is the first container created, update first_container and switch_target_container
     if(first_container == NULL){
         first_container = new_container;
@@ -447,11 +462,8 @@ void print_all_container_thread(void){
 
 // search to see do a memory block exist within the cblock
 memory_block* search_memory(container_block* cblock, unsigned long int oid){
-
-    
     memory_block* temp = cblock->first_memory;
     // printk("%d: Within search memory to search for oid %lu", current->pid, oid);
-
     while(temp != NULL){
         // printk("%d: temp oid = %lu", current->pid, temp->oid);
         if(temp->oid == oid){
@@ -461,18 +473,15 @@ memory_block* search_memory(container_block* cblock, unsigned long int oid){
             temp = temp->next_memory;
         }
     }
-
-    return NULL;
-    
+    return NULL;    
 }
 
+// create memork and assign it to the container block
 memory_block* new_memory_create(container_block* cblock, unsigned long int oid, unsigned long size){
     memory_block* new_memory = (memory_block *)kmalloc(sizeof( memory_block ) , GFP_KERNEL);
-
     new_memory->oid = oid;
     new_memory->m_address = kzalloc(size, GFP_KERNEL);
-    new_memory->next_memory = NULL;
-    
+    new_memory->next_memory = NULL;    
     if(cblock->first_memory == NULL){
         cblock->first_memory = new_memory;
         cblock->last_memory = new_memory;
@@ -487,10 +496,42 @@ memory_block* new_memory_create(container_block* cblock, unsigned long int oid, 
 
 }
 
+// search to see do a lock block exist in the container
+lock_block* search_lock(container_block* cblock, int lid){
+    lock_block* temp = cblock->first_lock;
+    while(temp != NULL){
+        // printk("%d: temp oid = %lu", current->pid, temp->oid);
+        if(temp->lid == lid){
+            return temp;
+        }
+        else{
+            temp = temp->next_lock;
+        }
+    }
+
+    return NULL;
+}
 
 
-
-
+lock_block* new_lock_create(container_block* cblock, int lid){
+    lock_block* new_memory = (lock_block *)kmalloc(sizeof( lock_block ) , GFP_KERNEL);
+    new_memory->lid = lid;
+    new_memory->cid = cblock->cid;
+    new_memory->lock =  (struct mutex *)kmalloc(sizeof( struct mutex ) , GFP_KERNEL);
+    mutex_init(new_memory->lock);
+    new_memory->next_lock = NULL;
+    new_memory->prev_lock = NULL;
+    if(cblock->first_lock == NULL){
+        cblock->first_lock = new_memory;
+        cblock->last_lock = new_memory;
+    }
+    else{
+        new_memory->prev_lock = cblock->last_lock;
+        cblock->last_lock->next_lock = new_memory;
+        cblock->last_lock = new_memory;
+    }
+    return new_memory;
+}
 
 
 
@@ -586,9 +627,9 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
         return -1;
     }
 
-    printk("%d: before create lock\n", current->pid);
+    // printk("%d: before create lock\n", current->pid);
     mutex_lock(&mlock);
-    printk("%d: after create lock\n", current->pid);
+    // printk("%d: after create lock\n", current->pid);
 
     // copy from write success, cmd contain the cid from the user
     temp = search_container_create(cmd.cid);      //search does a container block exist already
@@ -650,7 +691,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 
     //remap_pfn_range can be use?
     //debug statement
-    printk("%d: resource_container_mmap start\n", current->pid); 
+    // printk("%d: resource_container_mmap start\n", current->pid); 
 
     mutex_lock(&mlock);
 
@@ -695,6 +736,8 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 int resource_container_lock(struct resource_container_cmd __user *user_cmd)
 {
     struct resource_container_cmd cmd;
+    container_block* cblock;
+    lock_block* lblock;
     //debug statement
     // printk("resource_container_lock start\n"); 
     
@@ -702,6 +745,15 @@ int resource_container_lock(struct resource_container_cmd __user *user_cmd)
     {
         return -1;
     }
+
+    cblock = search_all_container_tid(current->pid);
+    lblock = search_lock(cblock, cmd.oid);
+
+    if(lblock == NULL){
+        lblock = new_lock_create(cblock,cmd.oid);
+    }
+
+    mutex_lock(lblock->lock);
     //debug statement
     // printk("resource_container_lock end\n"); 
     return 0;
@@ -720,6 +772,15 @@ int resource_container_unlock(struct resource_container_cmd __user *user_cmd)
     {
         return -1;
     }
+
+    cblock = search_all_container_tid(current->pid);
+    lblock = search_lock(cblock, cmd.oid);
+
+    if(lblock == NULL){
+        printk(KERN_ERR "unlock a lock not created yet\n");
+    }
+
+    mutex_unlock(lblock->lock);
     //debug statement
     // printk("resource_container_unlock end\n"); 
     return 0;
