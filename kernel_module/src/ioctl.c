@@ -684,7 +684,7 @@ int resource_container_mmap(struct file *filp, struct vm_area_struct *vma)
 
     //debug statement
     // printk("resource_container_mmap end\n");
-    mutex_unlock(&memorylock); 
+    mutex_unlock(&mlock); 
     return ret;
 
 }
