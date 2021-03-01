@@ -296,7 +296,7 @@ int thread_remove(int tid, container_block* cblock){
     lock_block* temp_lblock;
 
     //debug statement
-    printk("%d: thread_remove begin\n", current->pid);
+    // printk("%d: thread_remove begin\n", current->pid);
 
     //case 1: only 1 thread within the cblock
     if(cblock->first_thread == cblock->last_thread){
@@ -329,10 +329,10 @@ int thread_remove(int tid, container_block* cblock){
             next->prev_container = prev;
         }
         
-        printk("removing thread\n");
+        // printk("removing thread\n");
         kfree(temp);
 
-        printk("removing lock\n");
+        // printk("removing lock\n");
         curr_lblock = cblock->first_lock;
         while(curr_lblock != NULL){
             temp_lblock = curr_lblock;
@@ -342,11 +342,11 @@ int thread_remove(int tid, container_block* cblock){
         }
 
 
-        printk("removing container\n");
+        // printk("removing container\n");
         kfree(cblock);
         
         //debug statement
-        printk("    %d: thread_remove return: case 1 success\n", current->pid);
+        // printk("    %d: thread_remove return: case 1 success\n", current->pid);
         return 0;
     }
 
