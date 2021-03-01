@@ -132,11 +132,11 @@ container_block* switch_target_container = NULL;    //Use to see which container
 container_block* search_container_create(int cid){
     container_block* temp;
     //debug statement
-    printk("%d: search_container_create begin\n", current->pid);
+    // printk("%d: search_container_create begin\n", current->pid);
     // no container
     if(first_container == NULL){
         //debug statement
-        printk("    %d: search container create return: no container\n", current->pid);
+        // printk("    %d: search container create return: no container\n", current->pid);
         return NULL;
     }
     
@@ -146,13 +146,13 @@ container_block* search_container_create(int cid){
     while(temp != NULL){
         if(temp->cid == cid){
             //debug statement
-            printk("    %d: search container create return: find container\n", current->pid);
+            // printk("    %d: search container create return: find container\n", current->pid);
             return temp;            //if the current search container match the cid, return the address of that container block
         }
         temp = temp->next_container;
     }
     //debug statement
-    printk("    %d: search container create return: no container\n", current->pid);
+    // printk("    %d: search container create return: no container\n", current->pid);
     return NULL;            //if iterate all the container but cannot find the target container, return NULL
 }
 
@@ -164,7 +164,7 @@ container_block* new_container_create(int cid){
     //input basic information for the new container block
 
     //debug statement
-    printk("%d: new_container_create\n", current->pid);
+    // printk("%d: new_container_create\n", current->pid);
     new_container->cid = cid;
     new_container->first_thread = NULL;
     new_container->next_container = NULL;
@@ -191,7 +191,7 @@ container_block* new_container_create(int cid){
         
     }
     //debug statement
-    printk("    %d: new_container_create return: new container\n", current->pid);
+    // printk("    %d: new_container_create return: new container\n", current->pid);
     return new_container;
 }
 
