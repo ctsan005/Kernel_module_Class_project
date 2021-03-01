@@ -611,7 +611,7 @@ int memory_remove(container_block* cblock, memory_block* mblock, tid_block* tblo
             kfree(mblock->m_address);
             kfree(mblock);
         }
-        printk("Success remove tid and memory");
+        printk("%d: Success remove tid and memory", current->pid);
     }
 
     else if(mblock->first_tid == tblock){       //tblock is the first tid block for the memory
@@ -630,7 +630,7 @@ int memory_remove(container_block* cblock, memory_block* mblock, tid_block* tblo
         kfree(tblock);
     }
 
-    printk("Success remove tid");
+    printk("%d: Success remove tid, current->pid");
     return 0;
 }
 
