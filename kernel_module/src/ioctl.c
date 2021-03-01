@@ -117,6 +117,7 @@ typedef struct lock_block{
 typedef struct tid_block{
     int tid;
     tid_block* next_tid;
+    tid_block* prev_tid;
 } tid_block;
 container_block* first_container = NULL;        //Use to check the first container
 container_block* last_container = NULL;         //use to check the last container
@@ -569,18 +570,69 @@ tid_block* new_memory_tid_create(memory_block* mblock, int tid){
     tid_block* temp = (tid_block *)kmalloc(sizeof( tid_block ) , GFP_KERNEL);
     temp->tid = tid;
     temp->next_tid = NULL;
+    temp->prev_tid = NULL;
     if(mblock->first_tid == NULL){
         mblock->first_tid = temp;
         mblock->last_tid = temp;
     }
     else{
         mblock->last_tid->next_tid = temp;
+        temp->prev_tid = mblock->last_tid;
         mblock->last_tid = temp;
     }
     return temp;    
 }
 
+int memory_remove(container_block* cblock, memory_block* mblock, tid_block* tblock){
+    if(mblock->first_tid == tblock && mblock->last_tid == tblock){          //only 1 tid using the memory
+        kfree(tblock);
 
+        if(mblock->prev_memory == NULL && mblock->next_memory == NULL){     //if only 1 memory block for container
+            kfree(mblock->m_address);
+            kfree(mblock);
+            cblock->first_memory = NULL;
+            cblock->last_memory = NULL;
+        }
+        else if(mblock->prev_memory == NULL){       //more than 1 memory block, but the target is the first memory block
+            cblock->first_memory = mblock->next_memory;
+            mblock->next_memory->prev_memory = NULL;
+            kfree(mblock->address);
+            kfree(mblock);
+        }
+        else if(mblock->next_memory == NULL){       //more than 1 memory block, but the target is the last memory block
+            cblock->last_memory = mblock->prev_memory;
+            mblock->prev_memory->next_memory = NULL;
+            kfree(mblock->m_address);
+            kfree(mblock);
+        }
+        else{                                       //more than 1 memory block, and the target is in the middle block
+            mblock->prev_memory->next_memory = mblock->next_memory;
+            mblock->next_memory->prev_memory = mblock->prev_memory;
+            kfree(mblock->m_address);
+            kfree(mblock);
+        }
+        printk("Success remove tid and memory");
+    }
+
+    else if(mblock->first_tid == tblock){       //tblock is the first tid block for the memory
+        mblock->first_tid = tblock->next_tid;
+        tblock->next_tid->prev_tid = NULL;
+        kfree(tblock);
+    }
+    else if(mblock->last_tid == tblock){        //tblock is the last tid block for the memory
+        mblock->last_tid = tblock->prev_tid;
+        tblock->prev_tid->next_tid = NULL;
+        kfree(tblock);
+    }
+    else{                                       //tblock is the middle block for the memory
+        tblock->prev_tid->next_tid = tblock->next_tid;
+        tblock->next_tid->prev_tid = tblock->prev_tid;
+        kfree(tblock);
+    }
+
+    printk("Success remove tid");
+    return 0;
+}
 
 
 
