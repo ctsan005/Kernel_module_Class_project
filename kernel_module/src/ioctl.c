@@ -809,7 +809,7 @@ int resource_container_switch(struct resource_container_cmd __user *user_cmd)
     mutex_unlock(&mlock); 
 
     //debug statement
-    printk("%d: finish switch"); 
+    printk("%d: finish switch", current->pid); 
     return 0;
 }
 /**
