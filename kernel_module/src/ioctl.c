@@ -684,8 +684,8 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
         return -1;
     }
     //debug statement
-    printk("    %d: resource_container_delete return: sucess delete\n", current->pid);
-    print_all_container_thread();
+    // printk("    %d: resource_container_delete return: sucess delete\n", current->pid);
+    // print_all_container_thread();
     mutex_unlock(&mlock);
     return 0;
 }
@@ -741,9 +741,9 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
         
 
     mutex_unlock(&mlock);
-    print_all_container_thread();
+    // print_all_container_thread();
     
-    printk("    %d: resource_container_create return: sucess create\n", current->pid);
+    // printk("    %d: resource_container_create return: sucess create\n", current->pid);
     
     return 0;
 }
