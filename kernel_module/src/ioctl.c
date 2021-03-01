@@ -202,7 +202,7 @@ thread_block* new_thread_create(container_block* cblock){
     thread_block* new_thread = (thread_block *)kmalloc(sizeof( thread_block ) , GFP_KERNEL);        //allocate space for thread_block
 
     //debug statement
-    printk("%d: new_thread_create begin\n", current->pid);
+    // printk("%d: new_thread_create begin\n", current->pid);
     new_thread->task_info = current;
     new_thread->cid = cblock->cid;
     new_thread->next_thread = NULL;
@@ -225,7 +225,7 @@ thread_block* new_thread_create(container_block* cblock){
         // schedule();
     }
     //debug statement
-    printk("    %d: new_thread_create return: new thread\n", current->pid);
+    // printk("    %d: new_thread_create return: new thread\n", current->pid);
     return new_thread;
 }
 
