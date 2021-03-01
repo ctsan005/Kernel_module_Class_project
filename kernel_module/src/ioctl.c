@@ -915,7 +915,7 @@ int resource_container_free(struct resource_container_cmd __user *user_cmd)
     }
 
     cblock = search_all_container_tid(current->pid);
-    mblock = search_memory(cblock,cmd->oid);
+    mblock = search_memory(cblock,cmd.oid);
     tblock = search_memory_tid(mblock, current->pid);
     if(cblock == NULL || mblock == NULL || tblock == NULL){
         printk(KERN_ERR "Wrong with free function: something is NULL");
