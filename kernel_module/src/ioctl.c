@@ -611,7 +611,7 @@ int memory_remove(container_block* cblock, memory_block* mblock, tid_block* tblo
             kfree(mblock->m_address);
             kfree(mblock);
         }
-        printk("%d: Success remove tid and memory", current->pid);
+        // printk("%d: Success remove tid and memory", current->pid);
     }
 
     else if(mblock->first_tid == tblock){       //tblock is the first tid block for the memory
@@ -630,7 +630,7 @@ int memory_remove(container_block* cblock, memory_block* mblock, tid_block* tblo
         kfree(tblock);
     }
 
-    printk("%d: Success remove tid", current->pid);
+    // printk("%d: Success remove tid", current->pid);
     return 0;
 }
 
@@ -657,9 +657,9 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
         return -1;
     }
 
-    printk("%d: before delete lock\n", current->pid);
+    // printk("%d: before delete lock\n", current->pid);
     mutex_lock(&mlock);
-    printk("%d: after delete lock\n", current->pid);
+    // printk("%d: after delete lock\n", current->pid);
 
     // Need to find the current thread information and remove it from the container
     target_tid = current->pid;       //find the current thread pid
