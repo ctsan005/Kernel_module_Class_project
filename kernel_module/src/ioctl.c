@@ -221,8 +221,7 @@ thread_block* new_thread_create(container_block* cblock){
         cblock->last_thread->next_thread = new_thread;
         new_thread->prev_thread = cblock->last_thread;
         cblock->last_thread = new_thread;        
-        set_current_state(TASK_INTERRUPTIBLE);
-        schedule();
+        
     }
     //debug statement
     // printk("    %d: new_thread_create return: new thread\n", current->pid);
@@ -713,6 +712,7 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     // Structure use to keep the information that is pass from the user
     struct resource_container_cmd cmd;
     container_block* temp = NULL;
+    thread_block* tblock;
 
     //debug output
     // printk("%d: main create begin\n", current->pid);
@@ -737,11 +737,16 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
     }
 
     //Now temp has the pointer to the target continer, need to add the new thread to the container
-    new_thread_create(temp);
-    //debug statement
-        
+    tblock = new_thread_create(temp);
+    //debug statement       
 
     mutex_unlock(&mlock);
+
+    if(temp->first_thread != tblock){
+        set_current_state(TASK_INTERRUPTIBLE);
+        schedule();
+    }
+    
     printk("%d: after create lock\n", current->pid);
     // wake_up_process(temp->running_thread->task_info);
     // print_all_container_thread();
