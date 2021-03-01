@@ -781,6 +781,12 @@ int resource_container_switch(struct resource_container_cmd __user *user_cmd)
 
     cblock = search_all_container_tid(current->pid);            //search the container that current thread running
 
+    if(cblock == NULL){
+        printk( "parent thread");
+        mutex_unlock(&mlock); 
+        return 0;
+    }
+
     if(cblock->running_thread->tid == current->pid){
         if(cblock->first_thread != cblock->last_thread){        //if there are more than 1 thread
 
