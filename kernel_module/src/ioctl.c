@@ -596,7 +596,7 @@ int memory_remove(container_block* cblock, memory_block* mblock, tid_block* tblo
         else if(mblock->prev_memory == NULL){       //more than 1 memory block, but the target is the first memory block
             cblock->first_memory = mblock->next_memory;
             mblock->next_memory->prev_memory = NULL;
-            kfree(mblock->address);
+            kfree(mblock->m_address);
             kfree(mblock);
         }
         else if(mblock->next_memory == NULL){       //more than 1 memory block, but the target is the last memory block
