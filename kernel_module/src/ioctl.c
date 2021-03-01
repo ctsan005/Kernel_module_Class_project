@@ -221,8 +221,8 @@ thread_block* new_thread_create(container_block* cblock){
         cblock->last_thread->next_thread = new_thread;
         new_thread->prev_thread = cblock->last_thread;
         cblock->last_thread = new_thread;        
-        // set_current_state(TASK_INTERRUPTIBLE);
-        // schedule();
+        set_current_state(TASK_INTERRUPTIBLE);
+        schedule();
     }
     //debug statement
     // printk("    %d: new_thread_create return: new thread\n", current->pid);
@@ -768,14 +768,44 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
 int resource_container_switch(struct resource_container_cmd __user *user_cmd)
 {
     struct resource_container_cmd cmd;
+    container_block* cblock;
+    thread_block* curr_tblock;
     //debug statement
-    printk("resource_container_switch start\n");  
+    // printk("%d: trying to perform switch");  
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         return -1;
     }
+
+    cblock = search_all_container_tid(current->pid);            //search the container that current thread running
+
+    if(cblock->running_thread->tid == current->pid){
+        if(cblock->first_thread != cblock->last_thread){        //if there are more than 1 thread
+
+             
+            curr_tblock = cblock->running_thread;
+            
+            if(cblock->running_thread == cblock->last_thread){
+                cblock->running_thread = cblock->first_thread;
+            }
+            else{
+                cblock->running_thread = cblock->running_thread->next_thread;
+            }
+
+            printk("%d: trying to switch to: %d",current->pid, cblock->running_thread->tid); 
+
+            wake_up_process(cblock->running_thread->task_info);
+            set_current_state(TASK_INTERRUPTIBLE);
+            schedule();
+
+        }        
+    }
+    else{
+        printk(KERN_ERR "Wrong with switching");
+    }
+
     //debug statement
-    printk("resource_container_switch end\n"); 
+    // printk("resource_container_switch end\n"); 
     return 0;
 }
 /**
