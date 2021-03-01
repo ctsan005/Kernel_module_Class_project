@@ -630,7 +630,7 @@ int memory_remove(container_block* cblock, memory_block* mblock, tid_block* tblo
         kfree(tblock);
     }
 
-    printk("%d: Success remove tid, current->pid");
+    printk("%d: Success remove tid", current->pid);
     return 0;
 }
 
