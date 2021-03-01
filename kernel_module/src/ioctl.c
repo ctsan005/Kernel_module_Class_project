@@ -388,10 +388,10 @@ int thread_remove(int tid, container_block* cblock){
             }
         }
 
-        printk("removing thread\n");
+        // printk("removing thread\n");
         kfree(temp);
         //debug statement
-        printk("    %d: thread_remove return: case 2 success\n", current->pid);
+        // printk("    %d: thread_remove return: case 2 success\n", current->pid);
         return 0;
     }
 }
