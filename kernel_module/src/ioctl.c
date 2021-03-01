@@ -771,11 +771,13 @@ int resource_container_switch(struct resource_container_cmd __user *user_cmd)
     container_block* cblock;
     thread_block* curr_tblock;
     //debug statement
-    // printk("%d: trying to perform switch");  
+    printk("%d: trying to perform switch");  
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         return -1;
     }
+
+    mutex_lock(&mlock);
 
     cblock = search_all_container_tid(current->pid);            //search the container that current thread running
 
@@ -804,8 +806,10 @@ int resource_container_switch(struct resource_container_cmd __user *user_cmd)
         printk(KERN_ERR "Wrong with switching");
     }
 
+    mutex_unlock(&mlock); 
+
     //debug statement
-    // printk("resource_container_switch end\n"); 
+    printk("%d: finish switch"); 
     return 0;
 }
 /**
