@@ -771,7 +771,7 @@ int resource_container_switch(struct resource_container_cmd __user *user_cmd)
     container_block* cblock;
     thread_block* curr_tblock;
     //debug statement
-    printk("%d: trying to perform switch");  
+    printk("%d: trying to perform switch", current->pid);  
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         return -1;
