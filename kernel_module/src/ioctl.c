@@ -810,7 +810,7 @@ int resource_container_switch(struct resource_container_cmd __user *user_cmd)
         printk("%d: trying to switch to: %d",current->pid, cblock->running_thread->tid); 
 
         wake_up_process(cblock->running_thread->task_info);
-        set_task_state(curr_tblock->task_info, TASK_INTERRUPTIBLE);
+        curr_tblock->task_info->state = (TASK_INTERRUPTIBLE);
         
 
     }        
