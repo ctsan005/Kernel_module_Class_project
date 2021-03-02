@@ -1,3 +1,5 @@
+// CS202 Project: Chi Chiu Tsang, 861265376
+
 //////////////////////////////////////////////////////////////////////
 //                     University of California, Riverside
 //
@@ -742,10 +744,10 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
 
     mutex_unlock(&mlock);
 
-    if(temp->first_thread != tblock){
-        set_current_state(TASK_INTERRUPTIBLE);
-        schedule();
-    }
+    // if(temp->first_thread != tblock){
+    //     set_current_state(TASK_INTERRUPTIBLE);
+    //     schedule();
+    // }
     
     printk("%d: after create lock\n", current->pid);
     // wake_up_process(temp->running_thread->task_info);
@@ -784,40 +786,37 @@ int resource_container_switch(struct resource_container_cmd __user *user_cmd)
 
     mutex_lock(&mlock);
 
-    cblock = search_all_container_tid(current->pid);            //search the container that current thread running
+    cblock = switch_target_container;          //Obtain the continer that need to switch
 
     if(cblock == NULL){
-        printk( "parent thread");
+        printk( "No container exist");
         mutex_unlock(&mlock); 
         return 0;
     }
 
-    if(cblock->running_thread->tid == current->pid){
-        if(cblock->first_thread != cblock->last_thread){        //if there are more than 1 thread
 
-             
-            curr_tblock = cblock->running_thread;
+    if(cblock->first_thread != cblock->last_thread){        //if there are more than 1 thread
+
             
-            if(cblock->running_thread == cblock->last_thread){
-                cblock->running_thread = cblock->first_thread;
-            }
-            else{
-                cblock->running_thread = cblock->running_thread->next_thread;
-            }
+        curr_tblock = cblock->running_thread;
+        
+        if(cblock->running_thread == cblock->last_thread){      // if the current running thread is the last thread within the container
+            cblock->running_thread = cblock->first_thread;
+        }
+        else{
+            cblock->running_thread = cblock->running_thread->next_thread;
+        }
 
-            printk("%d: trying to switch to: %d",current->pid, cblock->running_thread->tid); 
+        printk("%d: trying to switch to: %d",current->pid, cblock->running_thread->tid); 
 
-            wake_up_process(cblock->running_thread->task_info);
-            set_current_state(TASK_INTERRUPTIBLE);
-            schedule();
+        wake_up_process(cblock->running_thread->task_info);
+        set_task_state(curr_tblock->task_info, TASK_INTERRUPTIBLE);
+        
 
-        }        
-    }
-    else{
-        printk(KERN_ERR "Wrong with switching");
-    }
+    }        
 
     mutex_unlock(&mlock); 
+    schedule();
 
     //debug statement
     printk("%d: finish switch", current->pid); 
