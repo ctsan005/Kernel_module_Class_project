@@ -744,10 +744,10 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
 
     mutex_unlock(&mlock);
 
-    // if(temp->first_thread != tblock){
-    //     set_current_state(TASK_INTERRUPTIBLE);
-    //     schedule();
-    // }
+    if(temp->first_thread != tblock){
+        set_current_state(TASK_INTERRUPTIBLE);
+        schedule();
+    }
     
     printk("%d: after create lock\n", current->pid);
     // wake_up_process(temp->running_thread->task_info);
