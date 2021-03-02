@@ -815,6 +815,13 @@ int resource_container_switch(struct resource_container_cmd __user *user_cmd)
 
     }        
 
+    if(switch_target_container == last_container){
+        switch_target_container = first_container;
+    }
+    else{
+        switch_target_container = switch_target_container->next_container;
+    }
+
     mutex_unlock(&mlock); 
     schedule();
 
