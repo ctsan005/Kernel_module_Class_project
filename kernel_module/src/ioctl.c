@@ -183,8 +183,8 @@ container_block* new_container_create(int cid){
         last_container = new_container;
         switch_target_container = new_container;
 
-        // printk("\n\n\n\n");
-        // printk("Begin to build the first container");
+        printk("\n\n\n\n");
+        printk("Begin to build the first container");
     }
     else{       //else, update the last container
         last_container->next_container = new_container;
@@ -658,7 +658,7 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
         return -1;
     }
 
-    // printk("%d: before delete lock\n", current->pid);
+    printk("%d: before delete lock\n", current->pid);
     mutex_lock(&mlock);
     
 
@@ -688,7 +688,7 @@ int resource_container_delete(struct resource_container_cmd __user *user_cmd)
     // printk("    %d: resource_container_delete return: sucess delete\n", current->pid);
     // print_all_container_thread();
     mutex_unlock(&mlock);
-    // printk("%d: after delete lock\n", current->pid);
+    printk("%d: after delete lock\n", current->pid);
     return 0;
 }
 
@@ -727,7 +727,7 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
         return -1;
     }
 
-    // printk("%d: before create lock\n", current->pid);
+    printk("%d: before create lock\n", current->pid);
     mutex_lock(&mlock);
     
 
@@ -749,7 +749,7 @@ int resource_container_create(struct resource_container_cmd __user *user_cmd)
         schedule();
     }
     
-    // printk("%d: after create lock\n", current->pid);
+    printk("%d: after create lock\n", current->pid);
     // wake_up_process(temp->running_thread->task_info);
     // print_all_container_thread();
     
@@ -778,7 +778,7 @@ int resource_container_switch(struct resource_container_cmd __user *user_cmd)
     container_block* cblock;
     thread_block* curr_tblock;
     //debug statement
-    // printk("%d: trying to perform switch", current->pid);  
+    printk("%d: trying to perform switch", current->pid);  
     if (copy_from_user(&cmd, user_cmd, sizeof(cmd)))
     {
         return -1;
@@ -789,7 +789,7 @@ int resource_container_switch(struct resource_container_cmd __user *user_cmd)
     cblock = switch_target_container;          //Obtain the continer that need to switch
 
     if(cblock == NULL){
-        // printk( "No container exist");
+        printk( "No container exist");
         mutex_unlock(&mlock); 
         return 0;
     }
@@ -807,7 +807,7 @@ int resource_container_switch(struct resource_container_cmd __user *user_cmd)
             cblock->running_thread = cblock->running_thread->next_thread;
         }
 
-        // printk("%d: trying to switch to: %d",current->pid, cblock->running_thread->tid); 
+        printk("%d: trying to switch to: %d",current->pid, cblock->running_thread->tid); 
 
         wake_up_process(cblock->running_thread->task_info);
         curr_tblock->task_info->state = (TASK_INTERRUPTIBLE);
@@ -826,7 +826,7 @@ int resource_container_switch(struct resource_container_cmd __user *user_cmd)
     schedule();
 
     //debug statement
-    // printk("%d: finish switch", current->pid); 
+    printk("%d: finish switch", current->pid); 
     return 0;
 }
 /**
